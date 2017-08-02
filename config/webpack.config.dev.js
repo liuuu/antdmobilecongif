@@ -1,6 +1,8 @@
 'use strict';
 
 const autoprefixer = require('autoprefixer');
+
+const pxtorem = require('postcss-pxtorem');
 const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -142,6 +144,8 @@ module.exports = {
           /\.gif$/,
           /\.jpe?g$/,
           /\.png$/,
+          /\.less$/,
+          /\.svg$/,
         ],
         loader: require.resolve('file-loader'),
         options: {
@@ -168,6 +172,7 @@ module.exports = {
           // This is a feature of `babel-loader` for webpack (not Babel itself).
           // It enables caching results in ./node_modules/.cache/babel-loader/
           // directory for faster rebuilds.
+          plugins: [['import', { libraryName: 'antd-mobile', style: 'css' }]],
           cacheDirectory: true,
         },
       },
@@ -204,6 +209,46 @@ module.exports = {
                   flexbox: 'no-2009',
                 }),
               ],
+            },
+          },
+        ],
+      },
+      {
+        test: /\.(svg)$/i,
+        loader: 'svg-sprite-loader',
+        include: [
+          require.resolve('antd-mobile').replace(/warn\.js$/, ''), // 1. svg files of antd-mobile
+          // path.resolve(__dirname, 'src/my-project-svg-foler'),  // folder of svg files in your project
+        ],
+      },
+      {
+        test: /\.less$/,
+        use: [
+          require.resolve('style-loader'),
+          require.resolve('css-loader'),
+          {
+            loader: require.resolve('postcss-loader'),
+            options: {
+              ident: 'postcss', // https://webpack.js.org/guides/migrating/#complex-options
+              plugins: () => [
+                autoprefixer({
+                  browsers: [
+                    'last 2 versions',
+                    'Firefox ESR',
+                    '> 1%',
+                    'ie >= 8',
+                    'iOS >= 8',
+                    'Android >= 4',
+                  ],
+                }),
+                pxtorem({ rootValue: 100, propWhiteList: [] }),
+              ],
+            },
+          },
+          {
+            loader: require.resolve('less-loader'),
+            options: {
+              modifyVars: { '@primary-color': '#1DA57A' },
             },
           },
         ],
